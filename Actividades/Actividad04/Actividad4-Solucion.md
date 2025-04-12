@@ -430,6 +430,255 @@ greet()
 ```
 
 ```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git commit -m "Fix bug in rollback feature"
+[bugfix/rollback-feature df9cf27] Fix bug in rollback feature
+ 1 file changed, 1 insertion(+), 1 deletion(-)
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git checkout main
+Cambiado a rama 'main'
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git merge bugfix/rollback-feature 
+Auto-fusionando main.py
+CONFLICTO (contenido): Conflicto de fusión en main.py
+Fusión automática falló; arregle los conflictos y luego realice un commit con el resultado.
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git add main.py 
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git commit -m "Merge de main y bugfix/rollback-feature"
+[main 0f88e11] Merge de main y bugfix/rollback-feature
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git log --graph --oneline
+*   0f88e11 (HEAD -> main) Merge de main y bugfix/rollback-feature
+|\  
+| * df9cf27 (bugfix/rollback-feature) Fix bug in rollback feature
+* | 39a0fac Revert "Resolve merge conflict between main and feature/advanced-feature"
+|/  
+* d4f3cf2 Add greet function in advanced feature
+* fb4e021 Updated main.py message in main branch
+* 4943b41 (feature/another-new-feature2, feature/another-new-feature) Add main.py
+* 6fad0ba Set up the repository base documentation
+* 323754f Initial commit with README.md
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git branch -d bugfix/rollback-feature 
+Eliminada la rama bugfix/rollback-feature (era df9cf27).
+```
+
+Ejercicio 4: Manipulación y restauración de commits con git reset y git restore
+
+```python
+print('Hello World - updated in main')
+
+def greet():
+    print('Fixed bug in feature')
+
+greet()
+
+print('This change will be reset')
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git add main.py 
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git commit -m "Introduce a change to be reset"
+[main 610fe73] Introduce a change to be reset
+ 1 file changed, 2 insertions(+), 3 deletions(-)
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git reset --hard HEAD~1
+HEAD está ahora en 0f88e11 Merge de main y bugfix/rollback-feature
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ echo "Another line in README" >> README.md
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git status
+En la rama main
+Cambios no rastreados para el commit:
+  (usa "git add <archivo>..." para actualizar lo que será confirmado)
+  (usa "git restore <archivo>..." para descartar los cambios en el directorio de trabajo)
+        modificados:     README.md
+        modificados:     main.py
+
+sin cambios agregados al commit (usa "git add" y/o "git commit -a")
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git restore README.md 
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ cat README.md 
+ README\n\nWelcome to the project
+```
+
+
+Ejercicio 5: Trabajo colaborativo y manejo de Pull Requests
+
+```bash
+hoperrs@hoperrs:~/Escritorio$ git clone git@github.com:Hoperrs/DesarrolloSoftware_25-1.git
+Clonando en 'DesarrolloSoftware_25-1'...
+remote: Enumerating objects: 14, done.
+remote: Counting objects: 100% (14/14), done.
+remote: Compressing objects: 100% (9/9), done.
+remote: Total 14 (delta 0), reused 14 (delta 0), pack-reused 0 (from 0)
+Recibiendo objetos: 100% (14/14), 25.41 KiB | 4.23 MiB/s, listo.
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DesarrolloSoftware_25-1$ git checkout -b feature/team-feature
+Cambiado a nueva rama 'feature/team-feature'
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DesarrolloSoftware_25-1$ echo 'print("Collaboration is key!")' > ./Actividades/Actividad04/collaboration.py
+hoperrs@hoperrs:~/Escritorio/DesarrolloSoftware_25-1$ git add .
+hoperrs@hoperrs:~/Escritorio/DesarrolloSoftware_25-1$ git commit -m "Add collaboration script"
+[feature/team-feature e29f18a] Add collaboration script
+ 1 file changed, 1 insertion(+)
+ create mode 100644 Actividades/Actividad04/collaboration.py
+```
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DesarrolloSoftware_25-1$ git push origin feature/team-feature 
+Enumerando objetos: 8, listo.
+Contando objetos: 100% (8/8), listo.
+Compresión delta usando hasta 12 hilos
+Comprimiendo objetos: 100% (3/3), listo.
+Escribiendo objetos: 100% (5/5), 425 bytes | 425.00 KiB/s, listo.
+Total 5 (delta 2), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: Resolving deltas: 100% (2/2), completed with 2 local objects.
+remote: 
+remote: Create a pull request for 'feature/team-feature' on GitHub by visiting:
+remote:      https://github.com/Hoperrs/DesarrolloSoftware_25-1/pull/new/feature/team-feature
+remote: 
+To github.com:Hoperrs/DesarrolloSoftware_25-1.git
+ * [new branch]      feature/team-feature -> feature/team-feature
+```
+<div style="text-align:center">
+    <img src="./img/01-.png" style="max-width:100%; width:auto">
+</div>
+
+<div style="text-align:center">
+    <img src="./img/02-.png" style="max-width:100%; width:auto">
+</div>
+
+<div style="text-align:center">
+    <img src="./img/03-.png" style="max-width:100%; width:auto">
+</div>
+
+<div style="text-align:center">
+    <img src="./img/04-.png" style="max-width:100%; width:auto">
+</div>
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DesarrolloSoftware_25-1$ git branch -D feature/team-feature 
+Eliminada la rama feature/team-feature (era e29f18a).
+hoperrs@hoperrs:~/Escritorio/DesarrolloSoftware_25-1$ git push origin --delete feature/team-feature
+To github.com:Hoperrs/DesarrolloSoftware_25-1.git
+ - [deleted]         feature/team-feature
+```
+
+
+Ejercicio 6: Cherry-Picking y Git Stash
+
+```bash
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ echo 'print("Cherry pick this!")' >> main.py
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git add main.py 
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git commit -m "Add cherry-pick example"
+[main befc9c3] Add cherry-pick example
+ 1 file changed, 1 insertion(+), 3 deletions(-)
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ echo 'print("segundo cambio")' >> main.py 
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git add main.py 
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git commit -m "Add cherry-pick second change"
+[main 2cbb82d] Add cherry-pick second change
+ 1 file changed, 1 insertion(+)
+ hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ echo 'print("Tercer cambio")' >> main.py 
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git add main.py 
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad04/hoperrs-repo$ git commit -m "Add cherry-pick thrid change"
+[main 1452f01] Add cherry-pick thrid change
+ 1 file changed, 1 insertion(+)
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
+
+```
+
+```bash
 
 ```
 
