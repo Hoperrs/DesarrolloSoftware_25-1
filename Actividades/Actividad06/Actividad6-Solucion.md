@@ -548,7 +548,7 @@ hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ git commi
 
 **Pregunta**: ¿Cómo manejas los conflictos de fusión al final de un sprint? ¿Cómo puede el equipo mejorar la comunicación para evitar conflictos grandes?
 
-Inspeccionando los archivos que presentan conflicos, y seleccionar los cambios a preservar después de debatir con el equipo. Se recomienda mejorar la comunicación al definir los cambios y funcionalidad únicas que se asignarán a cada colaborar a fin de que 2 o más personas no modifiquen el mismo archivo al mismo tiempo y generen conflictos al querer integrarlos.
+Inspeccionando los archivos que presentan conflicos, y seleccionar los cambios a preservar después de debatir con el equipo. Se recomienda mejorar la comunicación al definir los cambios y funcionalidad únicas que se asignarán a cada colaborador a fin de que 2 o más personas no modifiquen el mismo archivo al mismo tiempo y generen conflictos al querer integrarlos.
 
 #### **Fase 5: Fase de desarrollo, automatización de integración continua (CI) con git rebase**
 
@@ -566,25 +566,47 @@ En un entorno CI, es común automatizar ciertas operaciones de Git para asegurar
 **Comandos:**
 ```bash
 # Dentro de tu proyecto, crea un hook pre-push
-$ nano .git/hooks/pre-push
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ nano .git/hooks/pre-push
 
 # Agrega el siguiente script para automatizar el rebase
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ cat .git/hooks/pre-push
 #!/bin/bash
 git fetch origin main
 git rebase origin/main
 
 # Haz el archivo ejecutable
-$ chmod +x .git/hooks/pre-push
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ chmod +x .git/hooks/pre-push
 
 # Simula cambios y haz push
-$ git checkout feature-user-story-1
-$ echo "Cambios importantes" > feature1.md
-$ git add feature1.md
-$ git commit -m "Cambios importantes en feature 1"
-$ git push origin feature-user-story-1
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ git checkout feature-user-story-1
+Cambiado a rama 'feature-user-story-1'
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ echo "Cambios importantes" > feature1.md
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ git add feature1.md
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ git commit -m "Cambios importantes en feature 1"
+[feature-user-story-1 484fcac] Cambios importantes en feature 1
+ 1 file changed, 1 insertion(+)
+ create mode 100644 feature1.md
+hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/scrum-project$ git push origin feature-user-story-1
+Desde github.com:Hoperrs/Actividad06-scrum-project
+ * branch            main       -> FETCH_HEAD
+Rebase aplicado satisfactoriamente y actualizado refs/heads/feature-user-story-1.
+Enumerando objetos: 4, listo.
+Contando objetos: 100% (4/4), listo.
+Compresión delta usando hasta 12 hilos
+Comprimiendo objetos: 100% (2/2), listo.
+Escribiendo objetos: 100% (3/3), 382 bytes | 382.00 KiB/s, listo.
+Total 3 (delta 0), reused 0 (delta 0), pack-reused 0 (from 0)
+remote: 
+remote: Create a pull request for 'feature-user-story-1' on GitHub by visiting:
+remote:      https://github.com/Hoperrs/Actividad06-scrum-project/pull/new/feature-user-story-1
+remote: 
+To github.com:Hoperrs/Actividad06-scrum-project.git
+ * [new branch]      feature-user-story-1 -> feature-user-story-1
 ```
 
 **Pregunta**: ¿Qué ventajas y desventajas observas al automatizar el rebase en un entorno de CI/CD?
+
+   Entre sus ventajas están el que matiene las ramas actualizadas con los últimos cambios de la rama main, reduce el trabajo manual y repetitivo, y aplica prácticas uniformes a todo el equipos. Y entre sus desventajas está la complejidad que requiere configuración avanzada y puede ser difícil de depurar, que modifica el historial de commitas y crea problemas con ramas compartidas, y que los conflictos automáticos pueden ser resueltos incorrectamente.
 
 ---
 
@@ -725,57 +747,81 @@ $ git tag v2.4.4 <commit>
 
    - **Paso 1**: Crea un nuevo proyecto en tu máquina local.
      ```bash
-     $ mkdir proyecto-colaborativo
-     $ cd proyecto-colaborativo
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06$ mkdir proyecto-colaborativo
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06$ cd proyecto-colaborativo
      ```
    - **Paso 2**: Inicializa Git en tu proyecto.
      ```bash
-     $ git init
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git init
+      Inicializado repositorio Git vacío en /home/hoperrs/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo/.git/
      ```
    - **Paso 3**: Crea un archivo de texto llamado `archivo_colaborativo.txt` y agrega algún contenido inicial.
      ```bash
-     $ echo "Este es el contenido inicial del proyecto" > archivo_colaborativo.txt
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ echo "Este es el contenido inicial del proyecto" > archivo_colaborativo.txt
      ```
    - **Paso 4**: Agrega el archivo al área de staging y haz el primer commit.
      ```bash
-     $ git add .
-     $ git commit -m "Commit inicial con contenido base"
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git add .
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git commit -m "Commit inicial con contenido base"
+      [main (commit-raíz) 9f95b30] Commit inicial con contenido base
+      1 file changed, 1 insertion(+)
+      create mode 100644 archivo_colaborativo.txt
      ```
    - **Paso 5**: Crea dos ramas activas: main y feature-branch.
      ```bash
-     $ git branch feature-branch  # Crear una nueva rama
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git branch feature-branch
      ```
    - **Paso 6**: Haz checkout a la rama feature-branch y realiza un cambio en el archivo `archivo_colaborativo.txt`.
      ```bash
-     $ git checkout feature-branch
-     $ echo "Este es un cambio en la feature-branch" >> archivo_colaborativo.txt
-     $ git add .
-     $ git commit -m "Cambios en feature-branch"
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git checkout feature-branch
+      Cambiado a rama 'feature-branch'
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ echo "Este es un cambio en la feature-branch" >> archivo_colaborativo.txt
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git add .
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git commit -m "Cambios en feature-branch"
+      [feature-branch b2fe643] Cambios en feature-branch
+      1 file changed, 1 insertion(+)
      ```
    - **Paso 7**: Regresa a la rama main y realiza otro cambio en la misma línea del archivo `archivo_colaborativo.txt`.
      ```bash
-     $ git checkout main
-     $ echo "Este es un cambio en la rama main" >> archivo_colaborativo.txt
-     $ git add .
-     $ git commit -m "Cambios en main"
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git checkout main
+      Cambiado a rama 'main'
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ echo "Este es un cambio en la rama main" >> archivo_colaborativo.txt
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git add .
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git commit -m "Cambios en main"
+      [main d4e3d6b] Cambios en main
+      1 file changed, 1 insertion(+)
      ```
 
 2. **Fusión y resolución de conflictos**
 
    - **Paso 1**: Intenta fusionar feature-branch en main. Se espera que surjan conflictos de fusión.
      ```bash
-     $ git merge feature-branch
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git merge feature-branch
+      Auto-fusionando archivo_colaborativo.txt
+      CONFLICTO (contenido): Conflicto de fusión en archivo_colaborativo.txt
+      Fusión automática falló; arregle los conflictos y luego realice un commit con el resultado.
      ```
    - **Paso 2**: Usa `git status` para identificar los archivos en conflicto. Examina los archivos afectados y resuelve manualmente los conflictos, conservando las líneas de código más relevantes para el proyecto.
      ```bash
-     $ git status
-     $ git checkout --theirs <archivo>  # Si decides aceptar los cambios de feature-branch
-     $ git checkout --ours <archivo>    # Si decides aceptar los cambios de main
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git status
+      En la rama main
+      Tienes rutas no fusionadas.
+      (arregla los conflictos y ejecuta "git commit"
+      (usa "git merge --abort" para abortar la fusion)
+
+      Rutas no fusionadas:
+      (usa "git add <archivo>..." para marcar una resolución)
+            modificados por ambos:  archivo_colaborativo.txt
+
+      sin cambios agregados al commit (usa "git add" y/o "git commit -a")
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git checkout --ours archivo_colaborativo.txt
+      Actualizada 1 ruta desde el índice
      ```
    - **Paso 3**: Una vez resueltos los conflictos, commitea los archivos y termina la fusión
      ```bash
-     $ git add .
-     $ git commit -m "Conflictos resueltos"
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git add .
+      hoperrs@hoperrs:~/Escritorio/DS/Actividades/Actividad06/proyecto-colaborativo$ git commit -m "Conflictos resueltos"
+      [main 3eba2cd] Conflictos resueltos
      ```
 
 3. **Simulación de fusiones y uso de git diff**
@@ -841,6 +887,8 @@ $ git tag v2.4.4 <commit>
    **Pregunta**:  
    ¿Cómo utilizarías los comandos `git checkout --ours` y `git checkout --theirs` para resolver este conflicto de manera rápida y eficiente? Explica cuándo preferirías usar cada uno de estos comandos y cómo impacta en la pipeline de CI/CD. ¿Cómo te asegurarías de que la resolución elegida no comprometa la calidad del código?
 
+   Elegiría --ours cuando mis cambios locales son prioritarios o contienen configuraciones críticas ya probadas, y --theirs cuando los cambios entrantes son necesarios para nuevas funcionalidades o correcciones. La forma de evitar que la resolución elegida no comprometa la calidad es a través de la ejecución de pruebas automatizadas después de resolver el conflicto, además de la documentación de la decisión y motivos en el mensaje del commit.
+
 2. **Ejercicio para git diff**
 
    **Contexto**: Durante una revisión de código en un entorno ágil, se observa que un pull request tiene una gran cantidad de cambios, muchos de los cuales no están relacionados con la funcionalidad principal. Estos cambios podrían generar conflictos con otras ramas en la pipeline de CI/CD.
@@ -848,12 +896,16 @@ $ git tag v2.4.4 <commit>
    **Pregunta**:  
    Utilizando el comando `git diff`, ¿cómo compararías los cambios entre ramas para identificar diferencias específicas en archivos críticos? Explica cómo podrías utilizar `git diff feature-branch..main` para detectar posibles conflictos antes de realizar una fusión y cómo esto contribuye a mantener la estabilidad en un entorno ágil con CI/CD.
 
+   Git diff muestra las diferencias entre dos ramas, mostrando qué cambios existen en main que no están en feature-branch. Esto es muy útil y ayuda a la estabilidad en un entorno ágil con CI/CD al identificar cambios no relacionados que podrían afectar otras funcionalidades y reducir fallos en el pipeline de integración.
+
 3. **Ejercicio para git merge --no-commit --no-ff**
 
    **Contexto**: En un proyecto ágil con CI/CD, tu equipo quiere simular una fusión entre una rama de desarrollo y la rama principal para ver cómo se comporta el código sin comprometerlo inmediatamente en el repositorio. Esto es útil para identificar posibles problemas antes de completar la fusión.
 
    **Pregunta**:  
    Describe cómo usarías el comando `git merge --no-commit --no-ff` para simular una fusión en tu rama local. ¿Qué ventajas tiene esta práctica en un flujo de trabajo ágil con CI/CD, y cómo ayuda a minimizar errores antes de hacer commits definitivos? ¿Cómo automatizarías este paso dentro de una pipeline CI/CD?
+
+   Esta práctica tiene la ventaja de que permite inspeccionar los cambios antes de confirmarlos, facilita la detección temprana de conflictos y problemas de integración. Y lo más importante es que permite ejecutar pruebas localces con el código fusionado. Se podría automatizar a configurando el archivo yaml para GitHub Actions, automatizando el merge sin commit para luego ejecutar las pruebas, y confirmar los cambios en caso todas las pruebas pasen satisfactoriamente, y abortar el merge en caso se encuentre algún error.
 
 4. **Ejercicio para git mergetool**
 
