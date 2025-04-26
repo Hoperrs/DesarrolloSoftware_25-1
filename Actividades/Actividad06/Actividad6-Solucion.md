@@ -914,12 +914,16 @@ $ git tag v2.4.4 <commit>
    **Pregunta**:  
    Explica cómo configurarías y utilizarías `git mergetool` en tu equipo para integrar herramientas gráficas que faciliten la resolución de conflictos. ¿Qué impacto tiene el uso de `git mergetool` en un entorno de trabajo ágil con CI/CD, y cómo aseguras que todos los miembros del equipo mantengan consistencia en las resoluciones?
 
+   Se configura con el comando `git config --global merge-tool <herramienta>` y `git mergetool` para su uso. Entre ventajas está que permite la resolución visual y más rápida, la visualización disminuye los errores de resolución manual. También se recomienda configurar un entorno de staging para validar resoluciones antes de integrarlo a producción, e implementar hooks post merge que nos ayuden a verificar la integridad del código después de las resoluciones.
+
 5. **Ejercicio para git reset**
 
    **Contexto**: En un proyecto ágil, un desarrollador ha hecho un commit que rompe la pipeline de CI/CD. Se debe revertir el commit, pero se necesita hacerlo de manera que se mantenga el código en el directorio de trabajo sin deshacer los cambios.
 
    **Pregunta**:  
    Explica las diferencias entre `git reset --soft`, `git reset --mixed` y `git reset --hard`. ¿En qué escenarios dentro de un flujo de trabajo ágil con CI/CD utilizarías cada uno? Describe un caso en el que usarías `git reset --mixed` para corregir un commit sin perder los cambios no commiteados y cómo afecta esto a la pipeline.
+
+   `git reset --soft` deshace commit pero mantiene los cambios, `--mixed` deshace commits y staging, pero matiene las modificacines, y `--hard` elimina los commits y todas las modificaciones realizadas. En el contexto de la pregunta `git reset --mixed` es ideal para deshacer el commit y mantener las modificaciones pero con el staging area limpio.
 
 6. **Ejercicio para git revert**
 
@@ -928,6 +932,8 @@ $ git tag v2.4.4 <commit>
    **Pregunta**:  
    Explica cómo utilizarías `git revert` para deshacer los cambios sin modificar el historial de commits. ¿Cómo te aseguras de que esta acción no afecte la pipeline de CI/CD y permita una rápida recuperación del sistema? Proporciona un ejemplo detallado de cómo revertirías varios commits consecutivos.
 
+   `git revert` permite deshacer cambios por uno o varios commits creando nuevos commits que eliminen los cambios, no modificando el historial de commits. Se Puede usar `git revert <commit-más-reciente`, `git revert <commit-siguiente>`, y así continuar hasta el último commit a revertir. También se revertir múltiples commits con `git revert --no-commit <commit-mas-antiguo>^..<commit-mas-reciente>` para luego confirmar los cambios a través de un commit.
+
 7. **Ejercicio para git stash**
 
    **Contexto**: En un entorno ágil, tu equipo está trabajando en una corrección de errores urgente mientras tienes cambios no guardados en tu directorio de trabajo que aún no están listos para ser committeados. Sin embargo, necesitas cambiar rápidamente a una rama de hotfix para trabajar en la corrección.
@@ -935,12 +941,75 @@ $ git tag v2.4.4 <commit>
    **Pregunta**:  
    Explica cómo utilizarías `git stash` para guardar temporalmente tus cambios y volver a ellos después de haber terminado el hotfix. ¿Qué impacto tiene el uso de `git stash` en un flujo de trabajo ágil con CI/CD cuando trabajas en múltiples tareas? ¿Cómo podrías automatizar el proceso de *stashing* dentro de una pipeline CI/CD?
 
+   `git stash` permite guardar cambios temporalmente sin necesidad de realizar un commit, es muy útil en escenarios donde se necesita cambiar rápidamente de contexto. Se guarda todos los cambios modificados y en staging con `git stash save <mensaje>` para luego cambiar de rama y realizar los cambios y correciones más urgentes. Luego de finalizada la corrección y regresar a la rama feature, podemos ver la lista de stashes con `git stash list`, y luego aplicar el stash más reciente manteniendo una copia en la lista de stashing con `git stash apply`, o aplicar un stash específico y eliminarlo de la lista con `git stash pop stash@{0}`.
+
+   Un ejemplo de automatización del proceso de *stashing* en un pipeline CI/CD sería a tráves de hooks pre-checkout y post-checkout:
+   ```y
+   # Archivo: .git/hooks/pre-checkout (debes hacerlo ejecutable con chmod +x)
+   #!/bin/bash
+
+   # Verificar si hay cambios sin commitear
+   if [[ $(git status --porcelain | wc -l) -gt 0 ]]; then
+      echo "Cambios detectados, realizando stash automático..."
+      git stash save "Auto-stash antes de cambio de rama: $(date)"
+      # Opcional: guardar el nombre de la rama actual para recordar dónde estaba el stash
+      echo "STASHED_FROM=$(git branch --show-current)" > .git/stash-info
+   fi
+   ```
+
+   ```
+   # Archivo: .git/hooks/post-checkout
+   #!/bin/bash
+
+   # Si existe información sobre un stash previo para esta rama
+   if [[ -f .git/stash-info ]]; then
+      STASHED_FROM=$(cat .git/stash-info | grep STASHED_FROM | cut -d= -f2)
+      CURRENT_BRANCH=$(git branch --show-current)
+
+      # Si volvimos a la rama donde hicimos stash
+      if [[ "$STASHED_FROM" == "$CURRENT_BRANCH" ]]; then
+         echo "Volviendo a la rama donde hiciste stash, recuperando cambios..."
+         git stash pop
+         rm .git/stash-info
+      fi
+   fi
+   ```
+
 8. **Ejercicio para .gitignore**
 
    **Contexto**: Tu equipo de desarrollo ágil está trabajando en varios entornos locales con configuraciones diferentes (archivos de logs, configuraciones personales). Estos archivos no deberían ser parte del control de versiones para evitar confusiones en la pipeline de CI/CD.
 
    **Pregunta**:  
    Diseña un archivo `.gitignore` que excluya archivos innecesarios en un entorno ágil de desarrollo. Explica por qué es importante mantener este archivo actualizado en un equipo colaborativo que utiliza CI/CD y cómo afecta la calidad y limpieza del código compartido en el repositorio.
+
+   Un ejemplo de un archivo `.gitignore` que cumpla lo pedido es:
+   ```
+   # Archivos de configuración local
+   .env
+   .env.*
+   config/local/
+   *.local.json
+   *.local.js
+   *.local.conf
+
+   # Logs y archivos temporales
+   logs/
+   *.log
+   npm-debug.log*
+   yarn-debug.log*
+   yarn-error.log*
+   .temp/
+   .tmp/
+
+   # Secretos y certificados
+   *.pem
+   *.key
+   *.cert
+   credentials.json
+   *_credentials.*
+   ```
+
+   La importancia de mantener el archivo `.gitignore` son: Mejora la calidad y limpieza del repositorio, beneficios para el pipeline de CI/CD al excluir archivo innecesarios, mejora la colaboración en el equipo al evitar merges problemáticos por archivos que no deberían ser compartidos, y mejora la seguridad y protección de datos al asegurarse de que credenciales, tokens y claves privadas no sean compartidas accidentalmente y ayuda a cumplir con políticas de seguridad y regulaciones.
 
 ---
 
@@ -954,6 +1023,9 @@ Estás trabajando en un proyecto ágil donde múltiples desarrolladores están e
 **Pregunta:**  
 - ¿Cómo gestionarías la resolución de este conflicto de manera eficiente utilizando Git y manteniendo la entrega continua sin interrupciones? ¿Qué pasos seguirías para minimizar el impacto en la CI/CD y asegurar que el código final sea estable?
 
+   El enfoque para gestionar el conflicto de manera eficiente sería: Aislar el conflicto y establecer una rama temporal donde se intente fusionar ambas ramas feature para resolver el conflicto, luego reunir a representantes de ambos equipos para decidir los cambios óptimos a mantener, luego confirmar los cambios y documentar las decisiones a través del mensaje de commit para mayor claridad y trazabilidad, luego ejecutar pruebas en la rama de resolución, y finalmente cambiar a la rama main y verificar que la integración de la solución funciona correctamente con `git checkout main` y `git merge --no-ff conflict-resolution`.
+
+   Además del enfoque anterior, es necesaria la prevención de futuros conflictos. Se recomienda separar las responsabilidades y reducir las probabilidades de futuros conflictos al establecer acuerdos de arquitectura, que definan claramente qué partes del código son responsabilidad de cada equipo. También configurar pre-merge hooks para envitar potenciales conflictos en archivos críticos compartidos
 
 ##### **Ejercicio 2: Rebase vs. Merge en integraciones ágiles**
 
@@ -963,6 +1035,13 @@ En tu equipo de desarrollo ágil, cada sprint incluye la integración de varias 
 **Pregunta:**  
 - ¿Qué ventajas y desventajas presenta cada enfoque (merge vs. rebase) en el contexto de la metodología ágil? ¿Cómo impacta esto en la revisión de código, CI/CD, y en la identificación rápida de errores?
 
+   Merge tiene la ventaja de la preservación del historial completo, seguridad en colaboración al no reescribir el historial y así envitar conflictos, y una trazabilidad clara. Sus desventajas son que puede producir un historial desordenado y difícil de seguir, gráfico de commits complejo y dificultad para seguir la evolución debido a múltiples ramas.
+
+   Rebase tiene la ventaja de generar un historial lineal y limpio, sin commits de fusión redundantes y facilita la comprensión cronológica. Sus desventajas son que reescribe el historial creando problemas si otros colaboradores ya están trabajando en el rama, perdida de contexto temporal y resolución de conflictos más frecuente.
+
+   El impacto de merge, en la revisión de código facilita revisar los cambios en el contexto en que fueron realizados, en CI/CD hay menor riesgo de romper pipelines compartidas, y en identificación de errores el contexto preservado ayuda a entender por qué se tomaron ciertas decisiones pero los commits de fusión puede ocultar detalles sobre la introducción de errores.
+
+   El impacto de rebase, en la revisión de código genera una presentación lineal de cambios que permite identificar más fácilmente posibles problemas, en CI/CD permite automatizar mejor los procesos al tener menos ramificaciones, y en la identificación de errores la estructura lineal es optima para el uso de `git bisect` para encontrar errores.
 
 ##### **Ejercicio 3: Git Hooks en un flujo de trabajo CI/CD ágil**
 
@@ -972,6 +1051,67 @@ Tu equipo está utilizando Git y una pipeline de CI/CD que incluye tests unitari
 **Pregunta:**  
 - Diseña un conjunto de Git Hooks que ayudaría a mitigar estos problemas, integrando validaciones de estilo y tests automáticos antes de permitir los commits. Explica qué tipo de validaciones implementarías y cómo se relaciona esto con la calidad del código y la entrega continua en un entorno ágil.
 
+   Hook de pre-commit:
+   ```
+   #!/bin/bash
+   # filepath: .git/hooks/pre-commit
+
+   echo "🔍 Ejecutando validaciones pre-commit..."
+
+   # Verificar formato de código
+   echo "Verificando formato de código..."
+   if ! npm run lint-staged; then
+   echo "❌ Error: El código no cumple con las convenciones de estilo."
+   echo "Ejecuta 'npm run format' para corregir automáticamente los problemas."
+   exit 1
+   fi
+
+   # Ejecutar tests unitarios rápidos
+   echo "Ejecutando tests unitarios críticos..."
+   if ! npm run test:quick; then
+   echo "❌ Error: No todos los tests unitarios pasan."
+   echo "Corrige los tests fallidos antes de hacer commit."
+   exit 1
+   fi
+
+   echo "✅ Todas las validaciones de pre-commit pasaron correctamente"
+   ```
+
+   Hook commit-msg:
+   ```
+   #!/bin/bash
+   # filepath: .git/hooks/commit-msg
+
+   commit_msg_file=$1
+   commit_msg=$(cat "$commit_msg_file")
+
+   # Patrón para mensajes de commit siguiendo Conventional Commits
+   pattern="^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\([a-z0-9]+\))?: .{1,50}$"
+
+   if ! [[ "$commit_msg" =~ $pattern ]]; then
+   echo "❌ Error: El mensaje de commit no sigue la convención establecida."
+   echo "Debe seguir el formato: <tipo>(<ámbito>): <descripción>"
+   echo "Ejemplos: 'feat(auth): añadir login con OAuth' o 'fix(api): corregir error en endpoint de usuarios'"
+   exit 1
+   fi
+
+   echo "✅ Mensaje de commit validado correctamente"
+   ```
+
+   Estos hooks proporcionan una validad de estilo, formato de código y validación de pruebas.
+   Para asegurar la consistencia en todo el equipo se puede ejecutar:
+   ```
+   # Script de instalación para todos los desarrolladores
+   mkdir -p .git-hooks-template
+   cp ./hooks/* .git-hooks-template/
+   git config --global core.hooksPath .git-hooks-template
+   chmod +x .git-hooks-template/*
+   ```
+
+   Relación con la Calidad de Código: Hay un impacto positivo de prevención temprana de errores, consistencia del código bajo el mismo estandar, reducción de problemas al rechazar código de baja calidad o erroneo, y educación continua gracias a los hooks y su retroalimentación inmediata.
+
+   Relación con la Entrega Continua: Hay un impacto positivo en la estabilidad del pipeline CI/CD al reducir fallos en las builds por problemas básicos, mejora en la velocidad de entrega al corregir los errores en la fuente y no en el proceso de integración, incremento de confianza al reducir riesgos de introducir fallos, y una mejor adaptabilidad a metodologías ágiles gracias a la retroalimentación rápida generando una mejora contínua del código en cada iteración.
+
 ##### **Ejercicio 4: Estrategias de branching en metodologías ágiles**
 
 **Contexto:**  
@@ -980,6 +1120,23 @@ Tu equipo de desarrollo sigue una metodología ágil y está utilizando Git Flow
 **Pregunta:**  
 - Explica cómo adaptarías o modificarías la estrategia de branching para optimizar el flujo de trabajo del equipo en un entorno ágil y con integración continua. Considera cómo podrías integrar feature branches, release branches y hotfix branches de manera que apoyen la entrega continua y minimicen conflictos.
 
+   La estrategia de branching sería la de tener las ramas `main`, `feature/<nombre-segun-funcion>` y `hotfix/<bug-critico>`. La ramas deben tener una vida útil corta de 1 a 3 días como máximo, alcance reducido al desarrollar una característica lo suficientemente pequeño para integrarlo rápidamente, también hacer integración continua al hacer rebase desde main diariamente o al detectar cambios, y seguir una convención de nombre para las ramas. Ejemplo:
+
+   ```
+   # Crear feature branch
+   git checkout -b feature/auth-login-refactor main
+
+   # Mantener actualizada (diariamente)
+   git fetch origin
+   git rebase origin/main
+
+   # Finalizar feature (squash opcional para limpiar historial)
+   git checkout main
+   git merge --squash feature/auth-login-refactor
+   git commit -m "feat: implementa refactor del sistema de autenticación"
+   ```
+
+   Todos los cambios se integran directamente en main, y la rama main debe estár protegida y requerir que pasen todas las pruebas. Las ramas hotfix se deben crear desde main, esto facilita un proceso de revisión acelerado pero no omitido, luego integrar directamente a main para su despliegue inmediato.
 
 ##### **Ejercicio 5: Automatización de reversiones con git en CI/CD**
 
@@ -988,6 +1145,40 @@ Durante una integración continua en tu pipeline de CI/CD, se detecta un bug cr�
 
 **Pregunta:**  
 - ¿Cómo diseñarías un proceso automatizado con Git y CI/CD que permita revertir cambios de manera eficiente y segura? Describe cómo podrías integrar comandos como `git revert` o `git reset` en la pipeline y cuáles serían los pasos para garantizar que los bugs se reviertan sin afectar el desarrollo en curso.
+
+   Para revertir cambios de manera eficiente y segura cuando se detecten errores críticos en la rama `main`, se puede usar el siguiente proceso automatizado:
+   Sitema de detección y monitoreo:
+   ```
+   # En archivo CI (GitHub Actions, GitLab CI, etc.)
+   monitoring_job:
+   stage: post_deploy
+   script:
+      - ./scripts/monitor-critical-metrics.sh
+      - ./scripts/alert-threshold-check.sh
+   rules:
+      - if: $CI_COMMIT_BRANCH == "main"
+   ```
+   Esa job monitorea métricas clave después de cada despliegue. Esto trabajaría muy bien con el siguiente pipeline.
+
+   Pipeline de reversión automática:
+   ```
+   revert_pipeline:
+   stage: revert
+   when: manual
+   script:
+      - export FAILING_COMMIT=$(git log -n 1 --pretty=format:%H)
+      - git checkout -b hotfix/revert-$FAILING_COMMIT
+      - git revert $FAILING_COMMIT -m 1 --no-edit
+      - git push origin hotfix/revert-$FAILING_COMMIT
+      - curl -X POST $CI_API_URL/projects/$CI_PROJECT_ID/merge_requests \
+         -H "PRIVATE-TOKEN: $CI_TOKEN" \
+         -d "source_branch=hotfix/revert-$FAILING_COMMIT&target_branch=main&title=REVERT: $CI_COMMIT_TITLE"
+   environment:
+      name: production
+      action: stop
+   ```
+
+   Esto ejecuta `git revert` para deshacer los cambios del commit que genera errores, y se configura `action: stop` para detener inmediatamente el ambiente de producción para prevenir daños mientras se procesa el revert.
 
 --- 
 **Entrega:**  
